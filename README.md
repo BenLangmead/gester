@@ -1,0 +1,1 @@
+Beginning of an attempt to make a command-line tool that works with the digest library and allows for the digestion of input FASTA files.  The goal is to take a FASTA file as input and output a new FASTA file where the un-selected letters are printed lowercase and the selected letters (i.e. those overlapping a selected minimizer, modimizer or syncmer) are printed uppercase.
