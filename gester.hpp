@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <cstdint>
 #include <getopt.h>
 #include "digest/digester.hpp"
 #include "digest/mod_minimizer.hpp"
@@ -13,6 +15,7 @@ enum class MINSCHEME{
     MOD, WINDOW, SYNCMER
 };
 
-int parse_default_options(int argc, char* argv[]);
+void parse_default_options(int argc, char* argv[]);
+void read_fasta(std::string fname);
 
 #endif
