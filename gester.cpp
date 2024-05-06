@@ -1,36 +1,52 @@
 #include "gester.hpp"
 
+// I think I want to make this global
+const struct option longopts[] = {
+    {"file",  required_argument, 0, 'f'},
+    {"small",  required_argument, 0, 's'},
+    {"hash",   required_argument, 0, 'h'},
+    {"policy", required_argument, 0, 'p'},
+    {"digestion_scheme", required_argument, 0, 'd'},
+    {"large",  required_argument, 0, 'l'},
+    {"mod",  required_argument, 0, 'm'},
+    {"congruence",  required_argument, 0, 'c'},
+    {0, 0, 0, 0},
+};
+
+unsigned small_window;
+unsigned large_window;
+std::string filename;
+digest::BadCharPolicy policy;
+digest::MinimizedHashType ht;
+MINSCHEME scheme;
+
 int main(int argc, char* argv[]) {
-    int l = 0, s = 0;
-    digest::BadCharPolicy policy{digest::BadCharPolicy::WRITEOVER};
-    digest::MinimizedHashType ht{digest::MinimizedHashType::CANON};
+    
+    parse_default_options(argc, argv);
 
-    const struct option longopts[] = {
-        {"small",  required_argument, 0, 's'},
-        {"large",  required_argument, 0, 'l'},
-        {"policy", required_argument, 0, 'p'},
-        {"type",   required_argument, 0, 't'},
-        {0, 0, 0, 0},
-    };
+    std::cout << filename << std::endl;
+    std::cout << small_window << std::endl;
+    std::cout << (int)policy << " " << (int)ht << " " << (int)scheme << std::endl;
 
+
+    return 0;
+}
+
+int parse_default_options(int argc, char* argv[]){
     // Parse command line arguments
     int option = 0, index = 0;
-    while ((option = getopt_long(argc, argv, "l:s:p:t:", longopts, &index)) != -1) {
+    while ((option = getopt_long(argc, argv, "f:s:h:p:d:", longopts, &index)) != -1) {
         switch (option) {
-            case 'l':
-                l = atoi(optarg);
+            case 'f':
+                std::cout << 1 << std::endl;
+                filename = std::string(optarg);
                 break;
             case 's':
-                s = atoi(optarg);
+                std::cout << 2 << std::endl;
+                small_window = std::stoul(std::string(optarg));
                 break;
-            case 'p':
-                if(strcmp(optarg, "skip") == 0) {
-                    policy = digest::BadCharPolicy::SKIPOVER;
-                } else if(strcmp(optarg, "overwrite") == 0) {
-                    policy = digest::BadCharPolicy::WRITEOVER;
-                }
-                break;
-            case 't':
+            case 'h':
+                std::cout << 3 << std::endl;
                 if(strcmp(optarg, "canon") == 0) {
                     ht = digest::MinimizedHashType::CANON;
                 } else if(strcmp(optarg, "forward") == 0) {
@@ -39,35 +55,28 @@ int main(int argc, char* argv[]) {
                     ht = digest::MinimizedHashType::REVERSE;
                 }
                 break;
+            case 'p':
+                std::cout << 4 << std::endl;
+                if(strcmp(optarg, "skipover") == 0) {
+                    policy = digest::BadCharPolicy::SKIPOVER;
+                } else if(strcmp(optarg, "writeover") == 0) {
+                    policy = digest::BadCharPolicy::WRITEOVER;
+                }
+                break;
+            case 'd':
+                std::cout << 5 << std::endl;
+                if(strcmp(optarg, "mod") == 0) {
+                    scheme = MINSCHEME::MOD;
+                } else if(strcmp(optarg, "window") == 0) {
+                    scheme = MINSCHEME::WINDOW;
+                } else if(strcmp(optarg, "syncmer") == 0) {
+                    scheme = MINSCHEME::SYNCMER;
+                }
+                break;
             default:
                 std::cerr << "Invalid option" << std::endl;
                 return 1;
         }
-    }
-
-    if (optind >= argc) {
-        std::cerr << "Positional argument 1 should specify method" << std::endl;
-        return 1;
-    }
-
-    std::string method = argv[optind];
-    std::string dna{"ACGATCGATCGTATCGAGTCTCGAG"};
-    const size_t len = dna.length();
-	std::vector<uint32_t> vec;
-    if(method == "adaptive") {
-        digest::WindowMin<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> digester(dna, s, l);
-    	digester.roll_minimizer(len, vec);
-    } else if(method == "min") {
-        digest::WindowMin<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> digester(dna, s, l);
-    	digester.roll_minimizer(len, vec);
-    } else if(method == "mod") {
-        digest::ModMin<digest::BadCharPolicy::WRITEOVER> digester(dna, s, l);
-    	digester.roll_minimizer(len, vec);
-    } else if(method == "sync") {
-        // Perform action for "sync" choice
-    } else {
-        std::cerr << "Invalid method argument \"" << method << "\"" << std::endl;
-        return 1;
     }
     return 0;
 }
