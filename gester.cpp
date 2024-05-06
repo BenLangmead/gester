@@ -2,6 +2,8 @@
 
 // I think I want to make this global
 const struct option longopts[] = {
+    {"get_inds",  no_argument, 0, 'i'},
+    {"get_concat",  no_argument, 0, 'g'},
     {"file",  required_argument, 0, 'f'},
     {"small",  required_argument, 0, 's'},
     {"hash",   required_argument, 0, 'h'},
@@ -12,6 +14,9 @@ const struct option longopts[] = {
     {"congruence",  optional_argument, 0, 'c'},
     {0, 0, 0, 0},
 };
+
+bool get_indices = false;
+bool get_concat = false;
 
 unsigned small_window;
 unsigned large_window;
@@ -26,10 +31,13 @@ unsigned congruence;
 bool lwind_flag = 0;
 uint8_t mod_scheme_flags = 0;
 
+std::vector<uint32_t> vec;
+
 int main(int argc, char* argv[]) {
     
     parse_default_options(argc, argv);
 
+    std::cout << get_indices << " " << get_concat << std::endl;
     std::cout << filename << std::endl;
     std::cout << small_window << std::endl;
     std::cout << (int)policy << " " << (int)ht << " " << (int)scheme << std::endl;
@@ -49,8 +57,14 @@ int main(int argc, char* argv[]) {
 void parse_default_options(int argc, char* argv[]){
     // Parse command line arguments
     int option = 0, index = 0;
-    while ((option = getopt_long(argc, argv, "f:s:h:p:d:l:m:c:", longopts, &index)) != -1) {
+    while ((option = getopt_long(argc, argv, "igf:s:h:p:d:l:m:c:", longopts, &index)) != -1) {
         switch (option) {
+            case 'i':
+                get_indices = true;
+                break;
+            case 'g':
+                get_concat = true;
+                break;
             case 'f':
                 filename = std::string(optarg);
                 read_fasta(filename);
@@ -104,13 +118,32 @@ void parse_default_options(int argc, char* argv[]){
 }
 
 void read_fasta(std::string fname){
-    // nvm lol, there's an endline at the end of every line in a fasta file
-    // so should use the append_seq function
     std::ifstream in(fname, std::ios_base::in);
-    std::cout << in.is_open() << std::endl;
     std::string throw_away;
     getline(in, throw_away);
-    std::cout << throw_away << std::endl;
-    in >> seq;
-    std::cout << seq << std::endl;
+    std::string temp;
+    while(in >> temp){
+        seq += temp;
+    }
+    //std::cout << seq << std::endl;
+}
+
+void get_minimizers(){
+    if(policy == digest::BadCharPolicy::SKIPOVER){
+        if(scheme == MINSCHEME::MOD){
+            assert(mod_scheme_flags);
+        }else if(scheme == MINSCHEME::WINDOW){
+
+        }else{
+
+        }
+    }else{
+        if(scheme == MINSCHEME::MOD){
+            assert(mod_scheme_flags);
+        }else if(scheme == MINSCHEME::WINDOW){
+
+        }else{
+            
+        }
+    }
 }

@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <cstdint>
+#include <cassert>
 #include <getopt.h>
 #include "digest/digester.hpp"
 #include "digest/mod_minimizer.hpp"
@@ -17,5 +18,6 @@ enum class MINSCHEME{
 
 void parse_default_options(int argc, char* argv[]);
 void read_fasta(std::string fname);
+void get_minimizers();
 
 #endif
