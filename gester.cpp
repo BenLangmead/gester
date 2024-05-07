@@ -51,6 +51,8 @@ int main(int argc, char* argv[]) {
         std::cout << "bad" << std::endl;
     }
 
+    get_minimizers();
+    get_output();
     return 0;
 }
 
@@ -132,18 +134,39 @@ void get_minimizers(){
     if(policy == digest::BadCharPolicy::SKIPOVER){
         if(scheme == MINSCHEME::MOD){
             assert(mod_scheme_flags);
+            digest::ModMin<digest::BadCharPolicy::SKIPOVER> dig(seq, small_window, mod, congruence, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }else if(scheme == MINSCHEME::WINDOW){
-
+            digest::WindowMin<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }else{
-
+            digest::Syncmer<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }
     }else{
         if(scheme == MINSCHEME::MOD){
             assert(mod_scheme_flags);
+            digest::ModMin<digest::BadCharPolicy::SKIPOVER> dig(seq, small_window, mod, congruence, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }else if(scheme == MINSCHEME::WINDOW){
-
+            digest::WindowMin<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }else{
-            
+            digest::Syncmer<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
+            dig.roll_minimizer(seq.size(), vec);
         }
+    }
+}
+
+void get_output(){
+    if(get_indices){
+        for(auto a : vec){
+            // I think we put this in a file
+            std::cout << a << " ";
+        }
+        std::cout << std::endl;
+    }
+    if(get_concat){
+
     }
 }
