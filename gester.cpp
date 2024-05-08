@@ -7,7 +7,7 @@ const struct option longopts[] = {
     {"file",  required_argument, 0, 'f'},
     {"small",  required_argument, 0, 's'},
     {"hash",   required_argument, 0, 'h'},
-    {"policy", required_argument, 0, 'p'},
+    {"policy", optional_argument, 0, 'p'},
     {"digestion_scheme", required_argument, 0, 'd'},
     {"large",  optional_argument, 0, 'l'},
     {"mod",  optional_argument, 0, 'm'},
@@ -22,7 +22,7 @@ unsigned small_window;
 unsigned large_window;
 std::string filename;
 std::string seq;
-digest::BadCharPolicy policy;
+digest::BadCharPolicy policy = digest::BadCharPolicy::WRITEOVER;
 digest::MinimizedHashType ht;
 MINSCHEME scheme;
 unsigned mod;
@@ -89,6 +89,8 @@ void parse_default_options(int argc, char* argv[]){
                     policy = digest::BadCharPolicy::SKIPOVER;
                 } else if(strcmp(optarg, "writeover") == 0) {
                     policy = digest::BadCharPolicy::WRITEOVER;
+                }else{
+                    // throw an error
                 }
                 break;
             case 'd':
@@ -98,6 +100,8 @@ void parse_default_options(int argc, char* argv[]){
                     scheme = MINSCHEME::WINDOW;
                 } else if(strcmp(optarg, "syncmer") == 0) {
                     scheme = MINSCHEME::SYNCMER;
+                } else{
+                    // throw error
                 }
                 break;
             case 'l':
@@ -133,25 +137,29 @@ void read_fasta(std::string fname){
 void get_minimizers(){
     if(policy == digest::BadCharPolicy::SKIPOVER){
         if(scheme == MINSCHEME::MOD){
-            assert(mod_scheme_flags);
+            assert(mod_scheme_flags == 3);
             digest::ModMin<digest::BadCharPolicy::SKIPOVER> dig(seq, small_window, mod, congruence, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }else if(scheme == MINSCHEME::WINDOW){
+            assert(lwind_flag);
             digest::WindowMin<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }else{
+            assert(lwind_flag);
             digest::Syncmer<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }
     }else{
         if(scheme == MINSCHEME::MOD){
-            assert(mod_scheme_flags);
-            digest::ModMin<digest::BadCharPolicy::SKIPOVER> dig(seq, small_window, mod, congruence, 0, ht);
+            assert(mod_scheme_flags == 3);
+            digest::ModMin<digest::BadCharPolicy::WRITEOVER> dig(seq, small_window, mod, congruence, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }else if(scheme == MINSCHEME::WINDOW){
+            assert(lwind_flag);
             digest::WindowMin<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }else{
+            assert(lwind_flag);
             digest::Syncmer<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
             dig.roll_minimizer(seq.size(), vec);
         }
@@ -159,14 +167,26 @@ void get_minimizers(){
 }
 
 void get_output(){
+    std::ofstream ofs ("minimized.out", std::ofstream::out);
     if(get_indices){
         for(auto a : vec){
             // I think we put this in a file
-            std::cout << a << " ";
+            ofs << a << " ";
         }
-        std::cout << std::endl;
+        ofs << "\n";
     }
     if(get_concat){
-
+        std::string out_string;
+        if(scheme == MINSCHEME::MOD || scheme == MINSCHEME::WINDOW){
+            for(auto a : vec){
+                out_string += seq.substr(a, small_window);
+            }
+        }else{
+            assert(policy == digest::BadCharPolicy::WRITEOVER);
+            for(auto a : vec){
+                out_string += seq.substr(a, large_window + small_window-1);
+            }
+        }
+        ofs << out_string << "\n";
     }
 }
