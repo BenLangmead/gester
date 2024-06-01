@@ -1,5 +1,20 @@
 #include "gester.hpp"
 
+/*
+TODO:
+More Robust error handling
+Add an option to allow user to pick how many threads they want to run it on
+Allow the user to pick the data structure used, globally instantiate an array
+with a bunch of them with pre-determined window sizes, you can use defines to get this done I think
+look at the examples in bench_ds.cpp
+
+Notes:
+If you do are asking for the concatenation of strings with Syncmers using the Skipover policy
+and your sequence has non-ACTG characters, you will get strange results
+In general, Syncmer should always be used with writeover 
+(in the case of no non-ACTG characters, bad policy handling doesn't matter)
+*/
+
 // I think I want to make this global
 const struct option longopts[] = {
     {"get_inds",  no_argument, 0, 'i'},
@@ -15,6 +30,7 @@ const struct option longopts[] = {
     {0, 0, 0, 0},
 };
 
+// output flags
 bool get_indices = false;
 bool get_concat = false;
 
@@ -36,20 +52,6 @@ std::vector<uint32_t> vec;
 int main(int argc, char* argv[]) {
     
     parse_default_options(argc, argv);
-
-    std::cout << get_indices << " " << get_concat << std::endl;
-    std::cout << filename << std::endl;
-    std::cout << small_window << std::endl;
-    std::cout << (int)policy << " " << (int)ht << " " << (int)scheme << std::endl;
-
-    // do the minimization here, in a function
-    if(lwind_flag){
-        std::cout << large_window << std::endl;
-    }else if(mod_scheme_flags == 3){
-        std::cout << mod << " " << congruence << std::endl;
-    }else{
-        std::cout << "bad" << std::endl;
-    }
 
     get_minimizers();
     get_output();
