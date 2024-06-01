@@ -2,11 +2,13 @@
 
 /*
 TODO:
-More Robust error handling
-Add an option to allow user to pick how many threads they want to run it on
-Allow the user to pick the data structure used, globally instantiate an array
-with a bunch of them with pre-determined window sizes, you can use defines to get this done I think
-look at the examples in bench_ds.cpp
+- More Robust error handling
+- Add an option to allow user to pick how many threads they want to run it on
+- Allow the user to pick the data structure used, globally instantiate an array
+  with a bunch of them with pre-determined window sizes, you can use defines to get this done I think
+  look at the examples in bench_ds.cpp. (Probably do this one FIRST)
+- how do we want to test this?
+
 
 Notes:
 If you do are asking for the concatenation of strings with Syncmers using the Skipover policy
@@ -30,7 +32,7 @@ const struct option longopts[] = {
     {0, 0, 0, 0},
 };
 
-// output flags
+// output flags, whether or not we return the indices, whether or not we concat the minimizers together
 bool get_indices = false;
 bool get_concat = false;
 
@@ -44,6 +46,7 @@ MINSCHEME scheme;
 unsigned mod;
 unsigned congruence;
 
+// used to check that the arguments needed for the minimizer scheme have been provided
 bool lwind_flag = 0;
 uint8_t mod_scheme_flags = 0;
 
