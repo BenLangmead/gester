@@ -5,8 +5,8 @@ project(
 	default_options : [
 		'cpp_std=c++17',
 		'optimization=2',
-        'werror=true',
         'warning_level=3',
+		'werror=false',
 	],
 )
 

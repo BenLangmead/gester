@@ -4,11 +4,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <cstdint>
+#include <cassert>
 #include <getopt.h>
 #include "digest/digester.hpp"
 #include "digest/mod_minimizer.hpp"
 #include "digest/window_minimizer.hpp"
+#include "digest/syncmer.hpp"
 
+enum class MINSCHEME{
+    MOD, WINDOW, SYNCMER
+};
 
+void parse_default_options(int argc, char* argv[]);
+void read_fasta(std::string fname);
+void get_minimizers();
+void get_output();
 
 #endif
