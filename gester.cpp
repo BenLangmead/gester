@@ -52,6 +52,67 @@ uint8_t mod_scheme_flags = 0;
 
 std::vector<uint32_t> vec;
 
+
+
+
+//**** PREBUILT DIGESTERS ****//
+int ds = 0; // TODO: add to user input
+
+//// code to select:
+// if (policy == digest::BadCharPolicy::SKIPOVER)
+// 	get_prebuilt<digest::BadCharPolicy::SKIPOVER>();
+// else
+// 	get_prebuilt<digest::BadCharPolicy::WRITEOVER>();
+
+// only supportes 4 <= large <= 32
+template <digest::BadCharPolicy P, int large>
+digest::Digester<P>* get_prebuilt() {
+	if (large < large_window) {
+		return get_prebuilt<P,std::min(32,large+1)>();
+	}
+
+	if (scheme == MINSCHEME::WINDOW) {
+		switch (ds) {
+			case 0:
+				return new digest::WindowMin<P, digest::ds::Naive<large>>(seq, small_window, large_window, 0, ht);
+			case 1:
+				return new digest::WindowMin<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
+			case 2:
+				return new digest::WindowMin<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
+		}
+	} else {
+		switch (ds) {
+			case 0:
+				return new digest::Syncmer<P, digest::ds::Naive<large>>(seq, small_window, large_window, 0, ht);
+			case 1:
+				return new digest::Syncmer<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
+			case 2:
+				return new digest::Syncmer<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
+		}
+	}
+
+	assert(0);
+}
+
+template <digest::BadCharPolicy P>
+digest::Digester<P>* get_prebuilt() {
+	if (scheme == MINSCHEME::MOD) {
+		return new digest::ModMin<P>(seq, small_window, mod, congruence, 0, ht);
+	}
+	if (ds == 3) {
+		if (scheme == MINSCHEME::WINDOW) {
+			return new digest::WindowMin<P, digest::ds::Adaptive>(seq, small_window, large_window, 0, ht);
+		} else {
+			return new digest::Syncmer<P, digest::ds::Adaptive>(seq, small_window, large_window, 0, ht);
+		}
+	}
+
+	return get_prebuilt<P,4>();
+}
+
+
+
+
 int main(int argc, char* argv[]) {
     
     parse_default_options(argc, argv);
