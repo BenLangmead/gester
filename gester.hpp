@@ -17,6 +17,10 @@ enum class MINSCHEME{
     MOD, WINDOW, SYNCMER
 };
 
+enum class DATA_STRUCTURE{
+    NAIVE, SEGMENT, NAIVE2, ADAPTIVE,
+};
+
 void parse_default_options(int argc, char* argv[]);
 void read_fasta(std::string fname);
 void get_minimizers();

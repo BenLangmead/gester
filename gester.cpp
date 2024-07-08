@@ -26,6 +26,8 @@ const struct option longopts[] = {
     {"hash",   required_argument, 0, 'h'},
     {"policy", optional_argument, 0, 'p'},
     {"digestion_scheme", required_argument, 0, 'd'},
+    {"data_structure", optional_argument, 0, 'r'},
+    {"thread_count", optional_argument, 0, 't'},
     {"large",  optional_argument, 0, 'l'},
     {"mod",  optional_argument, 0, 'm'},
     {"congruence",  optional_argument, 0, 'c'},
@@ -45,6 +47,8 @@ digest::MinimizedHashType ht;
 MINSCHEME scheme;
 unsigned mod;
 unsigned congruence;
+DATA_STRUCTURE ds = DATA_STRUCTURE::ADAPTIVE; // TODO: add to user input
+unsigned thread_count = 1;
 
 // used to check that the arguments needed for the minimizer scheme have been provided
 bool lwind_flag = 0;
@@ -56,7 +60,6 @@ std::vector<uint32_t> vec;
 
 
 //**** PREBUILT DIGESTERS ****//
-int ds = 0; // TODO: add to user input
 
 //// code to select:
 // if (policy == digest::BadCharPolicy::SKIPOVER)
@@ -73,20 +76,20 @@ digest::Digester<P>* get_prebuilt() {
 
 	if (scheme == MINSCHEME::WINDOW) {
 		switch (ds) {
-			case 0:
+			case DATA_STRUCTURE::NAIVE:
 				return new digest::WindowMin<P, digest::ds::Naive<large>>(seq, small_window, large_window, 0, ht);
-			case 1:
+			case DATA_STRUCTURE::SEGMENT:
 				return new digest::WindowMin<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
-			case 2:
+			case DATA_STRUCTURE::NAIVE2:
 				return new digest::WindowMin<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
 		}
 	} else {
 		switch (ds) {
-			case 0:
+			case DATA_STRUCTURE::NAIVE:
 				return new digest::Syncmer<P, digest::ds::Naive<large>>(seq, small_window, large_window, 0, ht);
-			case 1:
+			case DATA_STRUCTURE::SEGMENT:
 				return new digest::Syncmer<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
-			case 2:
+			case DATA_STRUCTURE::NAIVE2:
 				return new digest::Syncmer<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
 		}
 	}
@@ -99,7 +102,7 @@ digest::Digester<P>* get_prebuilt() {
 	if (scheme == MINSCHEME::MOD) {
 		return new digest::ModMin<P>(seq, small_window, mod, congruence, 0, ht);
 	}
-	if (ds == 3) {
+	if (ds == DATA_STRUCTURE::ADAPTIVE) {
 		if (scheme == MINSCHEME::WINDOW) {
 			return new digest::WindowMin<P, digest::ds::Adaptive>(seq, small_window, large_window, 0, ht);
 		} else {
@@ -125,7 +128,7 @@ int main(int argc, char* argv[]) {
 void parse_default_options(int argc, char* argv[]){
     // Parse command line arguments
     int option = 0, index = 0;
-    while ((option = getopt_long(argc, argv, "igf:s:h:p:d:l:m:c:", longopts, &index)) != -1) {
+    while ((option = getopt_long(argc, argv, "igf:s:h:p:d:r:t:l:m:c:", longopts, &index)) != -1) {
         switch (option) {
             case 'i':
                 get_indices = true;
@@ -169,6 +172,20 @@ void parse_default_options(int argc, char* argv[]){
                 } else{
                     // throw error
                 }
+                break;
+            case 'r':
+                if(strcmp(optarg, "naive") == 0) {
+                    ds = DATA_STRUCTURE::NAIVE;
+                } else if(strcmp(optarg, "segment") == 0) {
+                    ds= DATA_STRUCTURE::SEGMENT;
+                } else if(strcmp(optarg, "naive2") == 0) {
+                    ds = DATA_STRUCTURE::NAIVE2;
+                } else{
+                    // defaults to adaptive
+                }
+                break;
+            case 't':
+                thread_count = std::stoul(std::string(optarg));
                 break;
             case 'l':
                 large_window = std::stoul(std::string(optarg));
