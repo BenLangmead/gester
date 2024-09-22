@@ -82,6 +82,8 @@ digest::Digester<P>* get_prebuilt() {
 				return new digest::WindowMin<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
 			case DATA_STRUCTURE::NAIVE2:
 				return new digest::WindowMin<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
+			default:
+				assert(0);
 		}
 	} else {
 		switch (ds) {
@@ -91,6 +93,8 @@ digest::Digester<P>* get_prebuilt() {
 				return new digest::Syncmer<P, digest::ds::SegmentTree<large>>(seq, small_window, large_window, 0, ht);
 			case DATA_STRUCTURE::NAIVE2:
 				return new digest::Syncmer<P, digest::ds::Naive2<large>>(seq, small_window, large_window, 0, ht);
+			default:
+				assert(0);
 		}
 	}
 
@@ -232,24 +236,24 @@ void get_minimizers(){
     if (policy == digest::BadCharPolicy::SKIPOVER){
 		if (scheme == MINSCHEME::MOD) {
             assert(mod_scheme_flags == 3);
-            thread_out::thread_mod<digest::BadCharPolicy::SKIPOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
+            digest::thread_out::thread_mod<digest::BadCharPolicy::SKIPOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
             assert(lwind_flag);
-			thread_out::thread_wind<digest::BadCharPolicy::SKIPOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
+			digest::thread_out::thread_wind<digest::BadCharPolicy::SKIPOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
             assert(lwind_flag);
-            thread_out::thread_sync<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
+            digest::thread_out::thread_sync<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
     } else {
         if(scheme == MINSCHEME::MOD){
             assert(mod_scheme_flags == 3);
-            thread_out::thread_mod<digest::BadCharPolicy::WRITEOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
+            digest::thread_out::thread_mod<digest::BadCharPolicy::WRITEOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
             assert(lwind_flag);
-			thread_out::thread_wind<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
+			digest::thread_out::thread_wind<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
             assert(lwind_flag);
-            thread_out::thread_sync<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
+            digest::thread_out::thread_sync<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
     }
 
