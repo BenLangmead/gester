@@ -109,7 +109,6 @@ digest::Digester<P>* get_prebuilt() {
 			return new digest::Syncmer<P, digest::ds::Adaptive>(seq, small_window, large_window, 0, ht);
 		}
 	}
-
 	return get_prebuilt<P,4>();
 }
 
@@ -218,35 +217,46 @@ void read_fasta(std::string fname){
 }
 
 void get_minimizers(){
-    if(policy == digest::BadCharPolicy::SKIPOVER){
-        if(scheme == MINSCHEME::MOD){
+	if (thread_count == 1) {
+		if (policy == digest::BadCharPolicy::SKIPOVER){
+			auto dig = get_prebuilt<digest::BadCharPolicy::SKIPOVER>();
+			dig->roll_minimizer(seq.size(), vec);
+		} else {
+			auto dig = get_prebuilt<digest::BadCharPolicy::WRITEOVER>();
+			dig->roll_minimizer(seq.size(), vec);
+		}
+		return;
+	}
+
+	std::vector<std::vector<uint32_t>> out;
+    if (policy == digest::BadCharPolicy::SKIPOVER){
+		if (scheme == MINSCHEME::MOD) {
             assert(mod_scheme_flags == 3);
-            digest::ModMin<digest::BadCharPolicy::SKIPOVER> dig(seq, small_window, mod, congruence, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+            thread_out::thread_mod<digest::BadCharPolicy::SKIPOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
             assert(lwind_flag);
-            digest::WindowMin<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+			thread_out::thread_wind<digest::BadCharPolicy::SKIPOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
             assert(lwind_flag);
-            digest::Syncmer<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+            thread_out::thread_sync<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
-    }else{
+    } else {
         if(scheme == MINSCHEME::MOD){
             assert(mod_scheme_flags == 3);
-            digest::ModMin<digest::BadCharPolicy::WRITEOVER> dig(seq, small_window, mod, congruence, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+            thread_out::thread_mod<digest::BadCharPolicy::WRITEOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
             assert(lwind_flag);
-            digest::WindowMin<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+			thread_out::thread_wind<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
             assert(lwind_flag);
-            digest::Syncmer<digest::BadCharPolicy::WRITEOVER, digest::ds::Adaptive> dig(seq, small_window, large_window, 0, ht);
-            dig.roll_minimizer(seq.size(), vec);
+            thread_out::thread_sync<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
     }
+
+	for (auto &v : out)	for (auto i : v) {
+		if (vec.size() and i < vec.back()) continue;
+		vec.emplace_back(i);
+	}
 }
 
 void get_output(){

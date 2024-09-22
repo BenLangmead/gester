@@ -12,6 +12,7 @@
 #include "digest/mod_minimizer.hpp"
 #include "digest/window_minimizer.hpp"
 #include "digest/syncmer.hpp"
+#include "digest/thread_out.hpp"
 
 enum class MINSCHEME{
     MOD, WINDOW, SYNCMER
