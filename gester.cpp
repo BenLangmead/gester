@@ -1,4 +1,5 @@
 #include "gester.hpp"
+#include <stdexcept>
 
 /*
 Notes:
@@ -7,8 +8,6 @@ and your sequence has non-ACTG characters, you will get strange results
 In general, Syncmer should always be used with writeover 
 (in the case of no non-ACTG characters, bad policy handling doesn't matter)
 */
-
-// I think I want to make this global
 const struct option longopts[] = {
     {"get_inds",  no_argument, 0, 'i'},
     {"get_concat",  no_argument, 0, 'g'},
@@ -34,7 +33,7 @@ unsigned large_window;
 std::string filename;
 std::string seq;
 digest::BadCharPolicy policy = digest::BadCharPolicy::WRITEOVER;
-digest::MinimizedHashType ht;
+digest::MinimizedHashType ht =digest::MinimizedHashType::CANON;
 MINSCHEME scheme;
 unsigned mod;
 unsigned congruence;
@@ -46,9 +45,6 @@ bool lwind_flag = 0;
 uint8_t mod_scheme_flags = 0;
 
 std::vector<uint32_t> vec;
-
-
-
 
 //**** PREBUILT DIGESTERS ****//
 
@@ -107,9 +103,6 @@ digest::Digester<P>* get_prebuilt() {
 	return get_prebuilt<P,4>();
 }
 
-
-
-
 int main(int argc, char* argv[]) {
     
     parse_default_options(argc, argv);
@@ -131,12 +124,22 @@ void parse_default_options(int argc, char* argv[]){
                 get_concat = true;
                 break;
             case 'f':
-                filename = std::string(optarg);
-                read_fasta(filename);
-                // read in FASTA file here
+                try{
+                    filename = std::string(optarg);
+                    read_fasta(filename);
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse and open the argument for input file");
+                }
                 break;
             case 's':
-                small_window = std::stoul(std::string(optarg));
+                try{
+                    // make sure its bigger or equal to 4
+                    if(optarg[0] == '-') throw std::invalid_argument("");
+                    small_window = std::stoul(std::string(optarg));
+                    if(small_window < 4) throw std::invalid_argument("");
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse the small window value. Note that the small window value must be greater or equal to 4");
+                }
                 break;
             case 'h':
                 if(strcmp(optarg, "canon") == 0) {
@@ -152,8 +155,6 @@ void parse_default_options(int argc, char* argv[]){
                     policy = digest::BadCharPolicy::SKIPOVER;
                 } else if(strcmp(optarg, "writeover") == 0) {
                     policy = digest::BadCharPolicy::WRITEOVER;
-                }else{
-                    // throw an error
                 }
                 break;
             case 'd':
@@ -164,7 +165,7 @@ void parse_default_options(int argc, char* argv[]){
                 } else if(strcmp(optarg, "syncmer") == 0) {
                     scheme = MINSCHEME::SYNCMER;
                 } else{
-                    // throw error
+                    throw std::invalid_argument("Received an invalid minimization scheme");
                 }
                 break;
             case 'r':
@@ -174,41 +175,61 @@ void parse_default_options(int argc, char* argv[]){
                     ds= DATA_STRUCTURE::SEGMENT;
                 } else if(strcmp(optarg, "naive2") == 0) {
                     ds = DATA_STRUCTURE::NAIVE2;
-                } else{
-                    // defaults to adaptive
                 }
                 break;
             case 't':
-                thread_count = std::stoul(std::string(optarg));
+                try{
+                    if(optarg[0] == '-') throw std::invalid_argument("");
+                    thread_count = std::stoul(std::string(optarg));
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse the number of threads");
+                }
                 break;
             case 'l':
-                large_window = std::stoul(std::string(optarg));
-                lwind_flag = 1;
+                try{
+                    if(optarg[0] == '-') throw std::invalid_argument("");
+                    large_window = std::stoul(std::string(optarg));
+                    lwind_flag = 1;
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse the large window size");
+                }
                 break;
             case 'm':
-                mod = std::stoul(std::string(optarg));
-                mod_scheme_flags |= 1;
+                try{
+                    if(optarg[0] == '-') throw std::invalid_argument("");
+                    mod = std::stoul(std::string(optarg));
+                    mod_scheme_flags |= 1;
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse the mod value");
+                }
                 break;
             case 'c':
-                congruence = std::stoul(std::string(optarg));
-                mod_scheme_flags |= (1<<1);
+                try{
+                    if(optarg[0] == '-') throw std::invalid_argument("");
+                    congruence = std::stoul(std::string(optarg));
+                    mod_scheme_flags |= (1<<1);
+                }catch(...){
+                    throw std::invalid_argument("Error occured while trying to parse the argument for congruence");
+                }
                 break;    
             default:
                 // probably throw an error here
-                std::cerr << "Invalid option" << std::endl;
+                std::cerr << "Invalid option at position " << index << std::endl;
         }
     }
 }
 
 void read_fasta(std::string fname){
     std::ifstream in(fname, std::ios_base::in);
+    if(!in.is_open()){
+        throw std::invalid_argument("");
+    }
     std::string throw_away;
     getline(in, throw_away);
     std::string temp;
     while(in >> temp){
         seq += temp;
     }
-    //std::cout << seq << std::endl;
 }
 
 void get_minimizers(){
@@ -258,7 +279,6 @@ void get_output(){
     std::ofstream ofs ("minimized.out", std::ofstream::out);
     if(get_indices){
         for(auto a : vec){
-            // I think we put this in a file
             ofs << a << " ";
         }
         ofs << "\n";
