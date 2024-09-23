@@ -16,6 +16,10 @@ A command-line tool that uses the [Digest library](https://github.com/VeryAmazed
 11. -m {unsigned int} number to mod by if mod-minimizer is chosen. Can be left out if not using them.
 12. -c {unsigned int} number the modulus should be congruent to if using mod-minimizers. Can be left out if not using them.
 
+### Note:
+
+If you are concatenating strings with Syncmers using the Skipover policy and your sequence has non-ACTG characters, you will get strange/incorrect results. This is because in such a case one cannot be certain of the size of a Syncmer since the entire large window is the syncmer but the large window van be of variable size if there are k-mers with non-ACTG characters in them.
+
 ## Example Usage:
 Assuming the executable is in the build folder and we want to use a window minimizer with the segment tree as the data structure:
 ./gest -i -g -f ../fasta/small.fasta -s 4 -h canon -p writeover -d window -r segment -t 4 -l 8

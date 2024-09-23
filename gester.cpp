@@ -247,24 +247,36 @@ void get_minimizers(){
 	std::vector<std::vector<uint32_t>> out;
     if (policy == digest::BadCharPolicy::SKIPOVER){
 		if (scheme == MINSCHEME::MOD) {
-            assert(mod_scheme_flags == 3);
+            if(mod_scheme_flags != 3){
+                throw std::invalid_argument("Missing arguments for mod-minimizer");
+            }
             digest::thread_out::thread_mod<digest::BadCharPolicy::SKIPOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
-            assert(lwind_flag);
+            if(!lwind_flag){
+                throw std::invalid_argument("Missing arguments for window-minimizer");
+            }
 			digest::thread_out::thread_wind<digest::BadCharPolicy::SKIPOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
-            assert(lwind_flag);
+            if(!lwind_flag){
+                throw std::invalid_argument("Missing arguments for syncmer");
+            }
             digest::thread_out::thread_sync<digest::BadCharPolicy::SKIPOVER, digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
     } else {
         if(scheme == MINSCHEME::MOD){
-            assert(mod_scheme_flags == 3);
+            if(mod_scheme_flags != 3){
+                throw std::invalid_argument("Missing arguments for mod-minimizer");
+            }
             digest::thread_out::thread_mod<digest::BadCharPolicy::WRITEOVER>(thread_count, out, seq, small_window, mod, congruence, 0, ht);
         }else if(scheme == MINSCHEME::WINDOW){
-            assert(lwind_flag);
+            if(!lwind_flag){
+                throw std::invalid_argument("Missing arguments for window-minimizer");
+            }
 			digest::thread_out::thread_wind<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }else{
-            assert(lwind_flag);
+            if(!lwind_flag){
+                throw std::invalid_argument("Missing arguments for syncmer");
+            }
             digest::thread_out::thread_sync<digest::BadCharPolicy::WRITEOVER,digest::ds::Adaptive>(thread_count, out, seq, small_window, large_window, 0, ht);
         }
     }
