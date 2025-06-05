@@ -2,6 +2,12 @@ A command-line tool that uses the [Digest library](https://github.com/VeryAmazed
 
 ## Setup:
 
+## Installation:
+
+    meson setup --buildtype=debug build
+    meson compile -C build
+
+
 ## Arguments:
 1. -i optional argument, include to indicate you want the index of every minimizer outputed.
 2. -g optional argument, include to indicate you want an output sequence consisting of all the minimizers concatenated.
