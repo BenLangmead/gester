@@ -23,8 +23,11 @@ gester_dep = declare_dependency(
 	dependencies: digest_dep,
 )
 
+thread_dep = dependency('threads')
+
+
 executable(
    'gest',
    'gester.cpp',
-   dependencies : [gester_dep],
+   dependencies : [thread_dep, gester_dep],
   )
